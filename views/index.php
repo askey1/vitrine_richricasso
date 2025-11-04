@@ -1,20 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="fr">
-    <head>
-        <title>Rich Ricasso</title>
+<head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ma Page PHP</title>
+        <title>Rich Ricasso</title>
+        <link rel="stylesheet" href="../assets/css/style.css">
     </head>
+     <?php include __DIR__ . '/includes/header.php'; ?>
     <body>
-        <header>
-            <nav>
-                <li><a href="index.php">Accueil</a></li>
-                <li><a href="catalogue.php">Catalogue</a></li>
-                <img src="https://cdn-icons-png.flaticon.com/512/2182/2182890.png" alt="Logo de Rich Ricasso" style="height:40px;">
-            </nav>
-        </header>
-
         <!-- Introduction -->
         <div class="introduction-parcours">
             <h1>Rich Ricasso</h1>
@@ -28,17 +22,6 @@
             <h2>Contenu Principal</h2>
             <p>Ceci est le contenu principal de la page.</p>
         </main>
-
-        <!-- Bas de page / Infolettre -->
-        <footer>
-            <div class="infolettre">
-                <h2>Inscrivez-vous à notre infolettre</h2>
-                <form action="subscribe.php" method="post">
-                    <label for="email">Adresse e-mail:</label>
-                    <input type="email" id="email" name="email" required>
-                    <button type="submit">S'inscrire</button>
-                </form>
-            </div>
-        </footer>
     </body>
+    <?php include __DIR__ . '/includes/footer.php'; ?>
 </html>
