@@ -256,3 +256,48 @@ footer {
     margin: 0 auto;  
 }
 
+/* --- Section: Produits phares --- */
+.products-grid {
+    display: flex;
+    overflow-x: auto;         
+    gap: 20px;
+    padding: 20px;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hot-pink) transparent;
+}
+
+.products-grid::-webkit-scrollbar {
+    height: 6px;
+}
+.products-grid::-webkit-scrollbar-thumb {
+    background-color: var(--hot-pink);
+    border-radius: 3px;
+}
+
+.product {
+    flex: 0 0 auto;            
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.product-image {
+    width: 300px;                  
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.product-title {
+    color: var(--cyan);
+    font-size: 1rem;
+    margin: 0;
+}

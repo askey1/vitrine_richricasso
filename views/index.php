@@ -11,7 +11,7 @@
     <body>
         <!-- Introduction -->
         <div class="introduction-parcours">
-
+                    <p class="introduction"></p>
             <p class="introduction">
                 <img src="../assets/images/richricasso.png" alt="Rich Ricasso" class="introduction-image">
             </p></p>
@@ -20,12 +20,26 @@ nouvelle gamme d'été en soie unisexe. Son style, inspiré du mouvement vaporwa
 accentue les tons pastel tels que le bleu ciel, le rose poudré et le violet lavande, et a ainsi conquis le monde 
 de l'ultra-luxe.</p>
         </div>
+<main>
+    <h2>Produits phares</h2>
+    <div class="products-grid">
+        <article class="product">
+            <img src="../assets/images/tie1.webp" alt="Tie 1" class="product-image">
+        </article>
 
-        <!-- Présentation des pièces phares -->
-        <main>
-            <h2>Contenu Principal</h2>
-            <p>Ceci est le contenu principal de la page.</p>
-        </main>
+        <article class="product">
+            <img src="../assets/images/tie2.webp" alt="Tie 2" class="product-image">
+        </article>
+
+        <article class="product">
+            <img src="../assets/images/tshirt1.webp" alt="T-shirt 1" class="product-image">
+        </article>
+
+        <article class="product">
+            <img src="../assets/images/tshirt2.webp" alt="T-shirt 2" class="product-image">     
+        </article>
+    </div>
+</main>
     </body>
     <?php include __DIR__ . '/includes/footer.php'; ?>
 </html>
