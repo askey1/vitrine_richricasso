@@ -132,16 +132,7 @@ class Utilisateur {
         
         return $stmt->execute();
     }
-
-    // Delete user
-    public function delete() {
-        $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
-        $stmt = $this->conn->prepare($query);
-        $this->id = htmlspecialchars(strip_tags($this->id));
-        $stmt->bindParam(1, $this->id);
-        return $stmt->execute();
-    }
-
+   // Check if email exists
     // Check if email exists
     public function emailExists() {
         $query = "SELECT id FROM " . $this->table_name . " WHERE email = ? LIMIT 1";
