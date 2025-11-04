@@ -1,6 +1,6 @@
 <header>
-    <nav class="navbar">  <!-- Added class="navbar" to match CSS -->
-        <ul class="nav-list">  <!-- Added class="nav-list" to match CSS -->
+    <nav class="navbar">
+        <ul class="nav-list">
             <li><a href="index.php">Accueil</a></li>
             <li><a href="catalogue.php">Catalogue</a></li>
 
@@ -11,7 +11,7 @@
             <?php
             $logoLink = isset($_SESSION['user']) ? 'profil.php' : 'connexion.php';
             ?>
-            <li class="profile-icon">  <!-- Added class="profile-icon" to match CSS for the image hover effects -->
+            <li class="profile-icon">
                 <a href="<?= $logoLink ?>">
                     <img src="https://cdn-icons-png.flaticon.com/512/2182/2182890.png"
                          alt="Logo de Rich Ricasso"
