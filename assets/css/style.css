@@ -249,4 +249,10 @@ footer {
   .profile-icon img { height: 28px; }
 }
 
+.introduction-image {
+    width: 150px; 
+    height: auto;
+    display: block;
+    margin: 0 auto;  
+}
 
