@@ -2,35 +2,45 @@
 require_once __DIR__ . '/../models/Produit.php';
 
 class ProduitController {
-    private $produitModel;
+    private $model;
 
-    public function __construct() {                 // IMPORTANT: double underscore
-        $this->produitModel = new Produit();
+    public function __construct($database) {
+        $this->model = new Produit($database);
     }
 
-    // Afficher le catalogue
+    public function getAllProduit($filters = []) {
+        return $this->model->getAll($filters);
+    }
+
+    public function creerProduit($data) {
+        return $this->model->create($data);
+    }
+
+    public function modifierProduit($id, $data) {
+        return $this->model->update($id, $data);
+    }
+
+    public function supprimerProduit($id) {
+        return $this->model->delete($id);
+    }
+
     public function catalogue() {
-        $type       = $_GET['type']     ?? null;
-        $couleur_id = $_GET['couleur']  ?? null;
-        $prix_min   = $_GET['prix_min'] ?? null;
-        $prix_max   = $_GET['prix_max'] ?? null;
+        try {
+            $filters = array_filter([
+                'type' => $_GET['categorie'] ?? null,
+                'couleur' => $_GET['couleur'] ?? null,
+                'prix_min' => $_GET['prix_min'] ?? null,
+                'prix_max' => $_GET['prix_max'] ?? null
+            ]);
 
-        // Récupération avec gardes et valeurs par défaut
-        $produits   = $this->produitModel->filter($type, $couleur_id, $prix_min, $prix_max) ?: [];
-        $couleurs   = $this->produitModel->getCouleurs() ?: [];
-        $prix_range = $this->produitModel->getPrixRange() ?: ['prix_min'=>0,'prix_max'=>500];
-        $types      = $this->produitModel->getTypes() ?: [];
+            $produits = $this->model->getAll($filters);
+            $page_title = 'Catalogue - Rich Ricasso';
+            require_once __DIR__ . '/../views/catalogue.php';
 
-        require_once __DIR__ . '/../views/catalogue.php';
-    }
-
-    // Afficher un produit (page détail, si tu l’utilises)
-    public function detail($id) {
-        $produit = $this->produitModel->getById($id);
-        if (!$produit) {
-            header('Location: index.php?page=catalogue');
-            exit();
+        } catch (Exception $e) {
+            error_log("Erreur catalogue: " . $e->getMessage());
+            echo "Impossible de charger le catalogue.";
         }
-        require_once __DIR__ . '/../views/produit.php';
     }
 }
+?>
