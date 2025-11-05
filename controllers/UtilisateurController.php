@@ -1,12 +1,11 @@
 <?php
 require_once __DIR__ . '/../models/Utilisateur.php';
-require_once __DIR__ . '/../config.php';
 
 class UtilisateurController {
     private $utilisateurModel;
     
-    public function __construct() {
-        $this->utilisateurModel = new Utilisateur();
+    public function __construct($database) {
+        $this->utilisateurModel = new Utilisateur($database);
     }
     
     // Afficher le formulaire d'inscription

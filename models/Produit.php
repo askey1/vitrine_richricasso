@@ -6,6 +6,7 @@ class Produit {
         $this->db = $db;
     }
 
+<<<<<<< HEAD
     /*
      * CREATE - Ajouter un nouveau produit
      * tableau : nom, description, prix, couleurid, type, image_principale, stock, en_vedette
@@ -14,6 +15,37 @@ class Produit {
     public function create($data) {
         $sql = "INSERT INTO produits (nom, description, prix, couleurid, type, image_principale, stock, en_vedette, date_ajout)
                 VALUES (:nom, :description, :prix, :couleurid, :type, :image_principale, :stock, :en_vedette, NOW())";
+=======
+    public function filter($type = null, $couleur_id = null, $prix_min = null, $prix_max = null) {
+        $sql = "SELECT p.*,
+                       c.nom      AS couleur_nom,
+                       c.code_hex AS couleur_hex,
+                       c.code_rgb AS couleur_rgb
+                FROM produits p
+                LEFT JOIN couleurs c ON p.couleur_id = c.id
+                WHERE 1=1";
+        $params = [];
+
+        if ($type !== null && $type !== '') {
+            $sql .= " AND p.type = :type";
+            $params[':type'] = $type;
+        }
+        if ($couleur_id !== null && $couleur_id !== '') {
+            $sql .= " AND p.couleur_id = :couleur_id";
+            $params[':couleur_id'] = $couleur_id;
+        }
+        if ($prix_min !== null && $prix_min !== '' && is_numeric($prix_min)) {
+            $sql .= " AND p.prix >= :prix_min";
+            $params[':prix_min'] = (float)$prix_min;
+        }
+        if ($prix_max !== null && $prix_max !== '' && is_numeric($prix_max)) {
+            $sql .= " AND p.prix <= :prix_max";
+            $params[':prix_max'] = (float)$prix_max;
+        }
+
+        $sql .= " ORDER BY p.nom ASC";
+
+>>>>>>> d53392c809ba710031033d3f98f14376ad998adb
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             ':nom' => $data['nom'],
