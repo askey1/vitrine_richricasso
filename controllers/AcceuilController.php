@@ -1,5 +1,5 @@
 <?php
-require_once DIR . '/../models/Produit.php';
+require_once __DIR__ . '/../models/Produit.php';
 
 
 class AccueilController {
@@ -14,7 +14,7 @@ class AccueilController {
         $produits_vedette = $this->produitModel->getFeatured();
 
         // Charger la vue
-        require_once DIR__ . '/../views/accueil.php';
+        require_once __DIR__ . '/../views/accueil.php';
     }
 }
 

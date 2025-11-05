@@ -1,102 +1,134 @@
-<?php
-// GitHub Copilot
-// File: /C:/xampp/htdocs/vitrine_richricasso/views/catalogue.php
+<?php require_once __DIR__ . '/includes/header.php'; ?>
 
-// - Inclure le header si présent (plusieurs emplacements courants)
-$possibleHeaders = [
-    __DIR__ . '/../header.php',
-    __DIR__ . '/header.php',
-    __DIR__ . '/../views/header.php',
-    __DIR__ . '/../partials/header.php',
-];
+<div class="catalogue-container">
+    <div class="page-header">
+        <h1>🛍️ Notre Catalogue</h1>
+        <p>Découvrez notre sélection de produits de qualité</p>
+    </div>
 
-
-// Trouver tous les fichiers .webp dans un ou plusieurs dossiers (configurable)
-$searchPaths = [
-    __DIR__ . '/../images',
-    __DIR__ . '/../assets/images',
-    __DIR__ . '/images',
-    __DIR__ . '/../public/images',
-    __DIR__ . '/../uploads',
-    __DIR__ . '/..',
-];
-
-$found = [];
-function findWebpRecursive($dir, &$out) {
-    if (!is_dir($dir)) return;
-    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS));
-    foreach ($it as $file) {
-        if ($file->isFile() && strtolower($file->getExtension()) === 'webp') {
-            $out[] = $file->getRealPath();
-        }
-    }
-}
-
-foreach ($searchPaths as $p) {
-    if (is_dir($p)) {
-        findWebpRecursive($p, $found);
-    }
-}
-
-// Déduire le chemin web depuis le chemin système (DocumentRoot)
-$docRoot = realpath($_SERVER['DOCUMENT_ROOT'] ?? '') ?: null;
-$images = [];
-foreach (array_unique($found) as $f) {
-    $real = realpath($f);
-    if ($docRoot && strpos($real, $docRoot) === 0) {
-        $web = '/' . ltrim(str_replace('\\', '/', substr($real, strlen($docRoot))), '/');
-    } else {
-        // fallback : chemin relatif depuis le dossier views (peut nécessiter ajustement)
-        $web = str_replace('\\', '/', substr($real, strlen(realpath(__DIR__ . '/..'))));
-        $web = '/' . ltrim($web, '/');
-    }
-    $images[] = htmlspecialchars($web, ENT_QUOTES, 'UTF-8');
-}
-?>
-<!doctype html>
-<html lang="fr">
-<head>
-    <meta charset="utf-8"/>
-    <title>Catalogue d'images (.webp)</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <style>
-        body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 1rem; background:#f5f5f5; }
-        .catalogue { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; }
-        .card { background: white; padding: 8px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); text-align:center; }
-        .card img { max-width:100%; height: auto; display:block; margin: 0 auto 8px; }
-        .empty { padding: 2rem; text-align:center; color:#666; }
-        header.small-note { margin-bottom: 1rem; }
-    </style>
-</head>
-<body>
-<?php if (! $headerIncluded): ?>
-    <header class="small-note"><h1>Catalogue</h1></header>
-<?php endif; ?>
-
-<main>
-    <?php if (count($images) === 0): ?>
-        <div class="empty">
-            <p>Aucune image .webp trouvée dans les chemins recherchés. Vérifiez l'emplacement des images ou ajustez les chemins dans views/catalogue.php.</p>
-            <p>Chemins recherchés (serveur) :</p>
-            <ul>
-                <?php foreach ($searchPaths as $p): ?>
-                    <li><?= htmlspecialchars($p, ENT_QUOTES, 'UTF-8') ?></li>
-                <?php endforeach; ?>
-            </ul>
+    <!-- Filtres -->
+    <div class="filters-section">
+        <div class="filters-header">
+            <h2>🔍 Filtrer les produits</h2>
         </div>
-    <?php else: ?>
-        <div class="catalogue">
-            <?php foreach ($images as $img): ?>
-                <div class="card">
-                    <a href="<?= $img ?>" target="_blank" rel="noopener">
-                        <img src="<?= $img ?>" alt="Image catalogue">
-                    </a>
-                    <div style="font-size:.9rem;color:#444;word-break:break-all;"><?= basename($img) ?></div>
+        
+        <form method="GET" action="" class="filter-form">
+            <input type="hidden" name="page" value="catalogue">
+            
+            <div class="filter-group">
+                <label for="search">Recherche</label>
+                <input type="text" id="search" name="search" placeholder="Nom du produit..." 
+                       value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+            </div>
+            
+            <div class="filter-group">
+                <label for="type">Type</label>
+                <select id="type" name="type">
+                    <option value="">Tous les types</option>
+                    <?php foreach ($types as $type_option): ?>
+                        <option value="<?= htmlspecialchars($type_option) ?>" 
+                                <?= ($type === $type_option) ? 'selected' : '' ?>>
+                            <?= ucfirst(htmlspecialchars($type_option)) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="couleur">Couleur</label>
+                <select id="couleur" name="couleur">
+                    <option value="">Toutes les couleurs</option>
+                    <?php foreach ($couleurs as $couleur): ?>
+                        <option value="<?= $couleur['id'] ?>" 
+                                <?= ($couleur_id == $couleur['id']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($couleur['nom']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="prix_min">Prix minimum (CAD)</label>
+                <input type="number" id="prix_min" name="prix_min" step="0.01" 
+                       placeholder="<?= $prix_range['prix_min'] ?>" 
+                       value="<?= htmlspecialchars($_GET['prix_min'] ?? '') ?>">
+            </div>
+            
+            <div class="filter-group">
+                <label for="prix_max">Prix maximum (CAD)</label>
+                <input type="number" id="prix_max" name="prix_max" step="0.01" 
+                       placeholder="<?= $prix_range['prix_max'] ?>" 
+                       value="<?= htmlspecialchars($_GET['prix_max'] ?? '') ?>">
+            </div>
+            
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Appliquer les filtres</button>
+                <a href="?page=catalogue" class="btn btn-secondary">Réinitialiser</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Résultats -->
+    <div class="results-header">
+        <div class="results-count">
+            <strong><?= count($produits) ?></strong> produit<?= count($produits) > 1 ? 's' : '' ?> trouvé<?= count($produits) > 1 ? 's' : '' ?>
+        </div>
+    </div>
+
+    <!-- Grille de produits -->
+    <?php if (count($produits) > 0): ?>
+        <div class="products-grid">
+            <?php foreach ($produits as $produit): ?>
+                <div class="product-card" onclick="window.location.href='?page=produit&id=<?= $produit['id'] ?>'">
+                    <div class="product-image-container">
+                        <img src="/SiteEcom_RichRicasso/assets/images/<?= htmlspecialchars($produit['image_principale']) ?>" 
+                             alt="<?= htmlspecialchars($produit['nom']) ?>" 
+                             class="product-image"
+                             onerror="this.src='/SiteEcom_RichRicasso/assets/images/placeholder.jpg'">
+                        
+                        <div class="product-badges">
+                            <?php if ($produit['en_vedette']): ?>
+                                <span class="badge badge-featured">⭐ Vedette</span>
+                            <?php endif; ?>
+                            
+                            <?php if ($produit['stock'] > 0): ?>
+                                <span class="badge badge-stock">✓ En stock (<?= $produit['stock'] ?>)</span>
+                            <?php else: ?>
+                                <span class="badge badge-out">✗ Rupture</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                    <div class="product-info">
+                        <span class="product-type"><?= htmlspecialchars($produit['type']) ?></span>
+                        
+                        <h3 class="product-name"><?= htmlspecialchars($produit['nom']) ?></h3>
+                        
+                        <p class="product-description"><?= htmlspecialchars($produit['description']) ?></p>
+                        
+                        <?php if ($produit['couleur_nom']): ?>
+                            <div class="product-color">
+                                <div class="color-swatch" style="background-color: <?= htmlspecialchars($produit['code_hex']) ?>"></div>
+                                <span class="color-name"><?= htmlspecialchars($produit['couleur_nom']) ?></span>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <div class="product-footer">
+                            <span class="product-price"><?= number_format($produit['prix'], 2) ?> $</span>
+                            <button class="btn-view">Voir détails →</button>
+                        </div>
+                    </div>
                 </div>
             <?php endforeach; ?>
         </div>
+    <?php else: ?>
+        <div class="empty-state">
+            <div style="font-size: 4em; margin-bottom: 20px;">🔍</div>
+            <h2>Aucun produit trouvé</h2>
+            <p>Essayez de modifier vos critères de recherche</p>
+            <a href="?page=catalogue" class="btn btn-primary" style="margin-top: 20px; display: inline-block;">Voir tous les produits</a>
+        </div>
     <?php endif; ?>
-</main>
+</div>
 
-</body>
-</html>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
