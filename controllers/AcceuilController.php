@@ -5,7 +5,7 @@ require_once __DIR__ . '/../models/Produit.php';
 class AccueilController {
     private $produitModel;
 
-    public function construct() {
+    public function __construct() {
         $this->produitModel = new Produit();
     }
 

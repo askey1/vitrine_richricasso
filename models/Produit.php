@@ -3,144 +3,134 @@ require_once __DIR__ . '/../models/Database.php';
 
 class Produit {
     private $db;
-    
+
     public function __construct() {
         $this->db = Database::getInstance()->getConnection();
     }
-    
-    // Récupérer tous les produits avec filtres
+
+    /**
+     * Catalogue avec filtres (tous optionnels).
+     * Les gardes évitent d’ajouter des clauses avec des valeurs vides.
+     * Les alias correspondent aux noms lus dans la vue.
+     */
     public function filter($type = null, $couleur_id = null, $prix_min = null, $prix_max = null) {
-        $sql = "SELECT p.*, c.nom as couleur_nom, c.code_hex, c.code_rgb
+        $sql = "SELECT p.*,
+                       c.nom      AS couleur_nom,
+                       c.code_hex AS couleur_hex,
+                       c.code_rgb AS couleur_rgb
                 FROM produits p
                 LEFT JOIN couleurs c ON p.couleur_id = c.id
                 WHERE 1=1";
-        
         $params = [];
-        
-        if ($type) {
+
+        if ($type !== null && $type !== '') {
             $sql .= " AND p.type = :type";
             $params[':type'] = $type;
         }
-        
-        if ($couleur_id) {
+        if ($couleur_id !== null && $couleur_id !== '') {
             $sql .= " AND p.couleur_id = :couleur_id";
             $params[':couleur_id'] = $couleur_id;
         }
-        
-        if ($prix_min !== null) {
+        if ($prix_min !== null && $prix_min !== '' && is_numeric($prix_min)) {
             $sql .= " AND p.prix >= :prix_min";
-            $params[':prix_min'] = $prix_min;
+            $params[':prix_min'] = (float)$prix_min;
         }
-        
-        if ($prix_max !== null) {
+        if ($prix_max !== null && $prix_max !== '' && is_numeric($prix_max)) {
             $sql .= " AND p.prix <= :prix_max";
-            $params[':prix_max'] = $prix_max;
+            $params[':prix_max'] = (float)$prix_max;
         }
-        
+
         $sql .= " ORDER BY p.nom ASC";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
-        
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    // Récupérer les produits en vedette
+
     public function getFeatured() {
-        $sql = "SELECT p.*, c.nom as couleur_nom, c.code_hex, c.code_rgb
+        $sql = "SELECT p.*,
+                       c.nom      AS couleur_nom,
+                       c.code_hex AS couleur_hex,
+                       c.code_rgb AS couleur_rgb
                 FROM produits p
                 LEFT JOIN couleurs c ON p.couleur_id = c.id
                 WHERE p.en_vedette = 1
                 ORDER BY p.date_ajout DESC
                 LIMIT 6";
-        
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    // Récupérer un produit par ID avec toutes ses informations
+
     public function getById($id) {
-        $sql = "SELECT p.*, c.nom as couleur_nom, c.code_hex, c.code_rgb
+        $sql = "SELECT p.*,
+                       c.nom      AS couleur_nom,
+                       c.code_hex AS couleur_hex,
+                       c.code_rgb AS couleur_rgb
                 FROM produits p
                 LEFT JOIN couleurs c ON p.couleur_id = c.id
                 WHERE p.id = :id";
-        
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':id' => $id]);
-        
         $produit = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($produit) {
-            // Récupérer les images du produit
-            $produit['images'] = $this->getImages($id);
-            
-            // Récupérer les tailles disponibles
-            $produit['tailles'] = $this->getTailles($id);
+            $produit['images_secondaires'] = $this->getImages($id);
+            $produit['tailles']            = $this->getTailles($id);
         }
-        
         return $produit;
     }
-    
-    // Récupérer les images d'un produit
+
     public function getImages($produit_id) {
-        $sql = "SELECT * FROM images_produit 
-                WHERE produit_id = :produit_id 
+        $sql = "SELECT * FROM images_produit
+                WHERE produit_id = :pid
                 ORDER BY ordre ASC";
-        
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':produit_id' => $produit_id]);
-        
+        $stmt->execute([':pid' => $produit_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    // Récupérer les tailles disponibles pour un produit
+
     public function getTailles($produit_id) {
         $sql = "SELECT t.* FROM tailles t
                 INNER JOIN produit_taille pt ON t.id = pt.taille_id
-                WHERE pt.produit_id = :produit_id
+                WHERE pt.produit_id = :pid
                 ORDER BY t.id ASC";
-        
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':produit_id' => $produit_id]);
-        
+        $stmt->execute([':pid' => $produit_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    // Récupérer toutes les couleurs
+
     public function getCouleurs() {
-        $sql = "SELECT * FROM couleurs ORDER BY nom ASC";
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->db->query("SELECT * FROM couleurs ORDER BY nom ASC")
+                        ->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    // Récupérer la plage de prix
+
     public function getPrixRange() {
-        $sql = "SELECT MIN(prix) as prix_min, MAX(prix) as prix_max FROM produits";
-        $stmt = $this->db->query($sql);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $this->db->query("SELECT MIN(prix) AS prix_min, MAX(prix) AS prix_max FROM produits")
+                        ->fetch(PDO::FETCH_ASSOC);
     }
-    
-    // Récupérer les types de produits disponibles
+
     public function getTypes() {
-        $sql = "SELECT DISTINCT type FROM produits ORDER BY type ASC";
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        try {
+            $stmt = $this->db->query("SELECT DISTINCT type FROM produits
+                                      WHERE type IS NOT NULL AND type <> ''
+                                      ORDER BY type ASC");
+            return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+        } catch (PDOException $e) {
+            error_log('getTypes error: ' . $e->getMessage());
+            return [];
+        }
     }
-    
-    // Rechercher des produits
+
     public function search($query) {
-        $sql = "SELECT p.*, c.nom as couleur_nom, c.code_hex, c.code_rgb
+        $sql = "SELECT p.*,
+                       c.nom      AS couleur_nom,
+                       c.code_hex AS couleur_hex,
+                       c.code_rgb AS couleur_rgb
                 FROM produits p
                 LEFT JOIN couleurs c ON p.couleur_id = c.id
-                WHERE p.nom LIKE :query 
-                   OR p.description LIKE :query
-                   OR p.type LIKE :query
+                WHERE p.nom LIKE :q OR p.description LIKE :q OR p.type LIKE :q
                 ORDER BY p.nom ASC";
-        
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':query' => '%' . $query . '%']);
-        
+        $stmt->execute([':q' => "%$query%"]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-?>

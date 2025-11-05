@@ -1,7 +1,7 @@
 <header>
     <nav class="navbar">
         <ul class="nav-list">
-            <li><a href="index.php">Accueil</a></li>
+            <li><a href="accueil.php">Accueil</a></li>
             <li><a href="catalogue.php">Catalogue</a></li>
 
             <!-- <?php if (!isset($_SESSION['user'])): ?>

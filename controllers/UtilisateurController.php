@@ -26,7 +26,7 @@ class UtilisateurController {
             // Vérifier que les mots de passe correspondent
             if ($mot_de_passe !== $confirmation) {
                 setFlashMessage('error', 'Les mots de passe ne correspondent pas.');
-                redirect('/SiteEcom_RichRicasso/public/index.php?page=inscription');
+                redirect('/vitrine_richricasso/public/index.php?page=inscription');
             }
             
             // Inscrire l'utilisateur
@@ -34,10 +34,10 @@ class UtilisateurController {
             
             if ($result['success']) {
                 setFlashMessage('success', $result['message']);
-                redirect('/SiteEcom_RichRicasso/public/index.php?page=connexion');
+                redirect('/vitrine_richricasso/public/index.php?page=connexion');
             } else {
                 setFlashMessage('error', $result['message']);
-                redirect('/SiteEcom_RichRicasso/public/index.php?page=inscription');
+                redirect('/vitrine_richricasso/public/index.php?page=inscription');
             }
         }
     }
@@ -63,10 +63,10 @@ class UtilisateurController {
                 $_SESSION['user_email'] = $result['user']['email'];
                 
                 setFlashMessage('success', 'Connexion réussie !');
-                redirect('/SiteEcom_RichRicasso/public/index.php?page=profil');
+                redirect('/vitrine_richricasso/public/index.php?page=profil');
             } else {
                 setFlashMessage('error', $result['message']);
-                redirect('/SiteEcom_RichRicasso/public/index.php?page=connexion');
+                redirect('/vitrine_richricasso/public/index.php?page=connexion');
             }
         }
     }
@@ -75,7 +75,7 @@ class UtilisateurController {
     public function profil() {
         if (!isLoggedIn()) {
             setFlashMessage('error', 'Vous devez être connecté pour accéder à votre profil.');
-            redirect('/SiteEcom_RichRicasso/public/index.php?page=connexion');
+            redirect('/vitrine_richricasso/public/index.php?page=connexion');
         }
         
         $user = $this->utilisateurModel->getById($_SESSION['user_id']);
@@ -85,7 +85,7 @@ class UtilisateurController {
     // Traiter la mise à jour du profil
     public function traiterUpdateProfil() {
         if (!isLoggedIn()) {
-            redirect('/SiteEcom_RichRicasso/public/index.php?page=connexion');
+            redirect('/vitrine_richricasso/public/index.php?page=connexion');
         }
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -105,8 +105,8 @@ class UtilisateurController {
             } else {
                 setFlashMessage('error', $result['message']);
             }
-            
-            redirect('/SiteEcom_RichRicasso/public/index.php?page=profil');
+
+            redirect('/vitrine_richricasso/public/index.php?page=profil');
         }
     }
     
@@ -114,7 +114,7 @@ class UtilisateurController {
     public function deconnexion() {
         logout();
         setFlashMessage('success', 'Vous avez été déconnecté.');
-        redirect('/SiteEcom_RichRicasso/public/index.php');
+        redirect('/vitrine_richricasso/public/index.php');
     }
     
     // Traiter l'inscription à l'infolettre
