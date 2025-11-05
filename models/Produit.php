@@ -1,136 +1,121 @@
 <?php
-require_once __DIR__ . '/../models/Database.php';
-
 class Produit {
     private $db;
 
-    public function __construct() {
-        $this->db = Database::getInstance()->getConnection();
+    public function __construct($db) {
+        $this->db = $db;
     }
 
-    /**
-     * Catalogue avec filtres (tous optionnels).
-     * Les gardes évitent d’ajouter des clauses avec des valeurs vides.
-     * Les alias correspondent aux noms lus dans la vue.
+    /*
+     * CREATE - Ajouter un nouveau produit
+     * tableau : nom, description, prix, couleurid, type, image_principale, stock, en_vedette
+     * return bool - true si l'insertion réussie, false sinon
      */
-    public function filter($type = null, $couleur_id = null, $prix_min = null, $prix_max = null) {
-        $sql = "SELECT p.*,
-                       c.nom      AS couleur_nom,
-                       c.code_hex AS couleur_hex,
-                       c.code_rgb AS couleur_rgb
-                FROM produits p
-                LEFT JOIN couleurs c ON p.couleur_id = c.id
-                WHERE 1=1";
-        $params = [];
-
-        if ($type !== null && $type !== '') {
-            $sql .= " AND p.type = :type";
-            $params[':type'] = $type;
-        }
-        if ($couleur_id !== null && $couleur_id !== '') {
-            $sql .= " AND p.couleur_id = :couleur_id";
-            $params[':couleur_id'] = $couleur_id;
-        }
-        if ($prix_min !== null && $prix_min !== '' && is_numeric($prix_min)) {
-            $sql .= " AND p.prix >= :prix_min";
-            $params[':prix_min'] = (float)$prix_min;
-        }
-        if ($prix_max !== null && $prix_max !== '' && is_numeric($prix_max)) {
-            $sql .= " AND p.prix <= :prix_max";
-            $params[':prix_max'] = (float)$prix_max;
-        }
-
-        $sql .= " ORDER BY p.nom ASC";
-
+    public function create($data) {
+        $sql = "INSERT INTO produits (nom, description, prix, couleurid, type, image_principale, stock, en_vedette, date_ajout)
+                VALUES (:nom, :description, :prix, :couleurid, :type, :image_principale, :stock, :en_vedette, NOW())";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->execute([
+            ':nom' => $data['nom'],
+            ':description' => $data['description'],
+            ':prix' => $data['prix'],
+            ':couleurid' => $data['couleurid'],
+            ':type' => $data['type'],
+            ':image_principale' => $data['image_principale'],
+            ':stock' => $data['stock'],
+            ':en_vedette' => $data['en_vedette'] ?? 0
+        ]);
     }
-
-    public function getFeatured() {
-        $sql = "SELECT p.*,
-                       c.nom      AS couleur_nom,
-                       c.code_hex AS couleur_hex,
-                       c.code_rgb AS couleur_rgb
-                FROM produits p
-                LEFT JOIN couleurs c ON p.couleur_id = c.id
-                WHERE p.en_vedette = 1
-                ORDER BY p.date_ajout DESC
-                LIMIT 6";
-        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getById($id) {
-        $sql = "SELECT p.*,
-                       c.nom      AS couleur_nom,
-                       c.code_hex AS couleur_hex,
-                       c.code_rgb AS couleur_rgb
-                FROM produits p
-                LEFT JOIN couleurs c ON p.couleur_id = c.id
-                WHERE p.id = :id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([':id' => $id]);
-        $produit = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($produit) {
-            $produit['images_secondaires'] = $this->getImages($id);
-            $produit['tailles']            = $this->getTailles($id);
-        }
-        return $produit;
-    }
-
-    public function getImages($produit_id) {
-        $sql = "SELECT * FROM images_produit
-                WHERE produit_id = :pid
-                ORDER BY ordre ASC";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([':pid' => $produit_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getTailles($produit_id) {
-        $sql = "SELECT t.* FROM tailles t
-                INNER JOIN produit_taille pt ON t.id = pt.taille_id
-                WHERE pt.produit_id = :pid
-                ORDER BY t.id ASC";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([':pid' => $produit_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getCouleurs() {
-        return $this->db->query("SELECT * FROM couleurs ORDER BY nom ASC")
-                        ->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getPrixRange() {
-        return $this->db->query("SELECT MIN(prix) AS prix_min, MAX(prix) AS prix_max FROM produits")
-                        ->fetch(PDO::FETCH_ASSOC);
-    }
-
-    public function getTypes() {
+    /*
+     * READ - Lire tous les produits avec filtres optionnels
+     * Filtres disponibles: type, couleur, taille, prix_min, prix_max
+     * return Liste des produits
+     */
+    public function getAll($filters = [])
+ {
         try {
-            $stmt = $this->db->query("SELECT DISTINCT type FROM produits
-                                      WHERE type IS NOT NULL AND type <> ''
-                                      ORDER BY type ASC");
-            return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
-        } catch (PDOException $e) {
-            error_log('getTypes error: ' . $e->getMessage());
+            $sql = "SELECT p.*, c.nom as couleur_nom 
+                    FROM produits p 
+                    LEFT JOIN couleurs c ON p.couleurid = c.id 
+                    WHERE 1=1";
+            
+            $params = [];
+
+            // Filtre par type (cravate/chemise)
+            if (!empty($filters['type'])) {
+                $sql .= " AND p.type = :type";
+                $params[':type'] = $filters['type'];
+            }
+
+            // Filtre par couleur
+            if (!empty($filters['couleur'])) {
+                $sql .= " AND p.couleurid = :couleur";
+                $params[':couleur'] = $filters['couleur'];
+            }
+
+            // Filtre par taille (pour chemises uniquement)
+            if (!empty($filters['taille'])) {
+                $sql .= " AND EXISTS (
+                    SELECT 1 FROM produit_tailles pt 
+                    WHERE pt.produitid = p.id AND pt.taille = :taille
+                )";
+                $params[':taille'] = $filters['taille'];
+            }
+
+            // Filtre par gamme de prix
+            if (!empty($filters['prix_min'])) {
+                $sql .= " AND p.prix >= :prix_min";
+                $params[':prix_min'] = $filters['prix_min'];
+            }
+            if (!empty($filters['prix_max'])) {
+                $sql .= " AND p.prix <= :prix_max";
+                $params[':prix_max'] = $filters['prix_max'];
+            }
+
+            $sql .= " ORDER BY p.en_vedette DESC, p.date_ajout DESC";
+
+            $stmt = $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Erreur lecture produits: " . $e->getMessage());
             return [];
         }
     }
 
-    public function search($query) {
-        $sql = "SELECT p.*,
-                       c.nom      AS couleur_nom,
-                       c.code_hex AS couleur_hex,
-                       c.code_rgb AS couleur_rgb
-                FROM produits p
-                LEFT JOIN couleurs c ON p.couleur_id = c.id
-                WHERE p.nom LIKE :q OR p.description LIKE :q OR p.type LIKE :q
-                ORDER BY p.nom ASC";
+    /*
+     * READ - Lire un produit par ID
+     * return Produit ou null
+     */
+    public function getUserById() {
+        $sql = "SELECT * FROM users WHERE id = :id";
+        $result = $this->db->query($sql);
+        return $result->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /*
+     * UPDATE - Mettre à jour un produit existant
+     * tableau avec les clés correspondantes aux colonnes
+     * return bool - true si la mise à jour réussie, false sinon
+     */
+    public function update($id, $data) {
+        $sql = "UPDATE produits SET nom = :nom, description = :description, prix = :prix, couleurid = :couleurid, 
+                type = :type, image_principale = :image_principale, stock = :stock, en_vedette = :en_vedette
+                WHERE id = :id";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':q' => "%$query%"]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->execute(array_merge($data, [':id' => $id]));
+    }
+
+    /*
+     * DELETE - Supprimer un produit
+     * return bool - true si suppression réussie, false sinon
+     * 
+     * PAS NÉCESSAIRE DANS LE CADRE DU LABO, MAIS INCLUS POUR COMPLÉTER
+     */
+    public function delete($id) {
+        $sql = "DELETE FROM produits WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([':id' => $id]);
     }
 }
+?>
