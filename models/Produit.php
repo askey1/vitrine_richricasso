@@ -8,11 +8,6 @@ class Produit {
         $this->db = Database::getInstance()->getConnection();
     }
 
-    /**
-     * Catalogue avec filtres (tous optionnels).
-     * Les gardes évitent d’ajouter des clauses avec des valeurs vides.
-     * Les alias correspondent aux noms lus dans la vue.
-     */
     public function filter($type = null, $couleur_id = null, $prix_min = null, $prix_max = null) {
         $sql = "SELECT p.*,
                        c.nom      AS couleur_nom,
