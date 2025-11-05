@@ -19,30 +19,26 @@
 </head>
 <?php include __DIR__ . '/includes/header.php'; ?>
 <body>
-    <main class="connexion-container">
-        <h2>Connexion</h2>
-        <form action="#" method="post" class="connexion-form">
-            <label for="email">Adresse courriel:</label>
-            <input type="text" id="email" name="email" required>
+    <main>
+        <div class="connexion-container">
+            <h2>Connexion</h2>
+            <form action="#" method="post" class="connexion-form">
+                <label for="email">Adresse courriel:</label>
+                <input type="text" id="email" name="email" required>
 
-            <label for="password">Mot de passe :</label>
-            <input type="password" id="password" name="password" required>
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" required>
 
-            <button type="submit" name="connexion-form">Se connecter</button>
-        </form>
-    </main>
+                <button type="submit" name="connexion-form">Se connecter</button>
+            </form>
+        </div>
 
-    <main class="inscription-container">
-        <h2>Vous n'êtes pas inscris?</h2>
-        <form action="#" method="post" class="connexion-form">
-            <label for="email">Adresse courriel:</label>
-            <input type="text" id="email" name="email" required>
-
-            <label for="password">Mot de passe :</label>
-            <input type="password" id="password" name="password" required>
-
-            <button type="submit" name="connexion-form">Se connecter</button>
-        </form>
+        <div class="inscription-container">
+            <h2>Vous n'êtes pas inscris?</h2>
+                <a href="inscription.php" style="text-decoration: none;">
+                <button type="button">S'inscrire</button>
+            </a>
+        </div>
     </main>
 </body>
 </html>

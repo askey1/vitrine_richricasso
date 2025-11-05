@@ -22,10 +22,10 @@ de l'ultra-luxe.</p>
         </div>
 
         <!-- Présentation des pièces phares -->
-        <main>
+        <div>
             <h2>Contenu Principal</h2>
             <p>Ceci est le contenu principal de la page.</p>
-        </main>
+    </div>
     </body>
     <?php include __DIR__ . '/includes/footer.php'; ?>
 </html>
